@@ -4,6 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.atguigu.realtime.util.KafkaUtil;
+import com.ververica.cdc.connectors.mysql.source.MySqlSource;
+import com.ververica.cdc.connectors.mysql.table.StartupOptions;
+import com.ververica.cdc.debezium.JsonDebeziumDeserializationSchema;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.configuration.Configuration;
@@ -57,7 +61,7 @@ public class DimApp {
                 {
                     try {
                         jsonObj.getJSONObject("data");
-                        if(jsonObj.getString("type").equals("bootstrap-start")
+                        if (jsonObj.getString("type").equals("bootstrap-start")
                                 || jsonObj.getString("type").equals("bootstrap-complete")) {
                             return false;
                         }
@@ -66,8 +70,24 @@ public class DimApp {
                         return false;
                     }
                 });
+//        filterDS.print();
+        // TODO 6. FlinkCDC 读取配置流并广播流
+// 6.1 FlinkCDC 读取配置表信息
+        MySqlSource<String> mySqlSource = MySqlSource.<String>builder()
+                .hostname("hadoop102")
+                .port(3306)
+                .databaseList("gmall_config") // set captured database
+                .tableList("gmall_config.table_process") // set captured table
+                .username("root")
+                .password("000000")
+                .deserializer(new JsonDebeziumDeserializationSchema()) // converts SourceRecord to JSON String
+                .startupOptions(StartupOptions.initial())
+                .build();
 
-        filterDS.print();
+
+// 6.2 封装为流
+        DataStreamSource<String> mysqlDSSource = env.fromSource(mySqlSource, WatermarkStrategy.noWatermarks(), "MysqlSource");
+        mysqlDSSource.print();
 
         env.execute();
     }
