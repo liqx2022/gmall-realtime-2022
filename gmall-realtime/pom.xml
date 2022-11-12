@@ -132,7 +132,9 @@
         <!--phoenix相关依赖-->
         <dependency>
             <groupId>org.apache.phoenix</groupId>
-            <artifactId>phoenix-spark</artifactId>
+            <artifactId>phoenix-core</artifactId>
+            <!--导入phoenix-core比导入phoenix-spark更轻量级-->
+           <!-- <artifactId>phoenix-spark</artifactId>-->
             <version>5.0.0-HBase-2.0</version>
             <exclusions>
                 <exclusion>
