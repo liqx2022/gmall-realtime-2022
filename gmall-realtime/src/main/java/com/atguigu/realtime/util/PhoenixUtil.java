@@ -20,7 +20,7 @@ public class PhoenixUtil {
             //获取数据库操作对象
             ps = conn.prepareStatement(sql);
             //执行SQL语句
-            System.out.println(sql);
+            System.out.println("现在打印的sql是： "+sql);
             ps.execute();
         } catch (Exception e) {
             e.printStackTrace();

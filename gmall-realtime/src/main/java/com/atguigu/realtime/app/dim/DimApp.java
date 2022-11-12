@@ -35,7 +35,7 @@ public class DimApp {
     public static void main(String[] args) throws Exception {
         // TODO 1. 环境准备
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(4);
+        env.setParallelism(2);
 
         // TODO 2. 状态后端设置
         System.setProperty("HADOOP_USER_NAME", "atguigu");
