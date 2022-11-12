@@ -3,6 +3,7 @@ package com.atguigu.realtime.app.dwd;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.atguigu.realtime.util.DateFormatUtil;
 import com.atguigu.realtime.util.KafkaUtil;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.state.ValueState;
@@ -53,7 +54,79 @@ public class Dwd01_BaseLogApp {
         String topic = "topic_log";
         String groupId = "base_log_consumer";
         DataStreamSource<String> source = env.addSource(KafkaUtil.getKafkaConsumer(topic, groupId));
-        source.print("source");
+        // TODO 4. 数据清洗，转换结构
+        // 4.1 定义错误侧输出流
+        OutputTag<String> dirtyStreamTag = new OutputTag<String>("dirtyStream") {
+        };
+
+        // 4.2 分流（过滤脏数据），转换主流数据结构 jsonStr -> jsonObj
+        SingleOutputStreamOperator<JSONObject> cleanedStream = source.process(
+                new ProcessFunction<String, JSONObject>() {
+                    @Override
+                    public void processElement(String jsonStr, Context ctx, Collector<JSONObject> out) throws Exception {
+                        try {
+                            JSONObject jsonObj = JSON.parseObject(jsonStr);
+                            out.collect(jsonObj);
+                        } catch (Exception e) {
+                            ctx.output(dirtyStreamTag, jsonStr);
+                        }
+                    }
+                }
+        );
+
+        // 4.3 将脏数据写出到 Kafka 指定主题
+        DataStream<String> dirtyStream = cleanedStream.getSideOutput(dirtyStreamTag);
+        String dirtyTopic = "dirty_data";
+        dirtyStream.addSink(KafkaUtil.getKafkaProducer(dirtyTopic));
+
+        // TODO 5. 新老访客状态标记修复
+        // 5.1 按照 mid 对数据进行分组
+        KeyedStream<JSONObject, String> keyedStream = cleanedStream.keyBy(r -> r.getJSONObject("common").getString("mid"));
+
+        // 5.2 新老访客状态标记修复
+        SingleOutputStreamOperator<JSONObject> fixedStream = keyedStream.process(
+                new KeyedProcessFunction<String, JSONObject, JSONObject>() {
+
+                    ValueState<String> firstViewDtState;
+
+                    @Override
+                    public void open(Configuration param) throws Exception {
+                        super.open(param);
+                        firstViewDtState = getRuntimeContext().getState(new ValueStateDescriptor<String>(
+                                "lastLoginDt", String.class
+                        ));
+                    }
+
+                    @Override
+                    public void processElement(JSONObject jsonObj, Context ctx, Collector<JSONObject> out) throws Exception {
+                        String isNew = jsonObj.getJSONObject("common").getString("is_new");
+                        String firstViewDt = firstViewDtState.value();
+                        Long ts = jsonObj.getLong("ts");
+                        String dt = DateFormatUtil.toDate(ts);
+
+                        if ("1".equals(isNew)) {
+                            if (firstViewDt == null) {
+                                firstViewDtState.update(dt);
+                            } else {
+                                if (!firstViewDt.equals(dt)) {
+                                    isNew = "0";
+                                    jsonObj.getJSONObject("common").put("is_new", isNew);
+                                }
+                            }
+                        } else {
+                            if (firstViewDt == null) {
+                                // 将首次访问日期置为昨日
+                                String yesterday = DateFormatUtil.toDate(ts - 1000 * 60 * 60 * 24);
+                                firstViewDtState.update(yesterday);
+                            }
+                        }
+
+                        out.collect(jsonObj);
+                    }
+                }
+        );
+
+        fixedStream.print("fixedStream");
 
         env.execute();
     }
