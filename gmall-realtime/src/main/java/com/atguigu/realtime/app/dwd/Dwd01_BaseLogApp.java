@@ -126,7 +126,89 @@ public class Dwd01_BaseLogApp {
                 }
         );
 
-        fixedStream.print("fixedStream");
+        // TODO 6. 分流
+        // 6.1 定义启动、曝光、动作、错误侧输出流
+        OutputTag<String> startTag = new OutputTag<String>("startTag") {
+        };
+        OutputTag<String> displayTag = new OutputTag<String>("displayTag") {
+        };
+        OutputTag<String> actionTag = new OutputTag<String>("actionTag") {
+        };
+        OutputTag<String> errorTag = new OutputTag<String>("errorTag") {
+        };
+
+        // 6.2 分流
+        SingleOutputStreamOperator<String> separatedStream = fixedStream.process(
+                new ProcessFunction<JSONObject, String>() {
+                    @Override
+                    public void processElement(JSONObject jsonObj, Context context, Collector<String> out) throws Exception {
+
+                        // 6.2.1 收集错误数据
+                        JSONObject error = jsonObj.getJSONObject("err");
+                        if (error != null) {
+                            context.output(errorTag, jsonObj.toJSONString());
+                        }
+
+                        // 剔除 "err" 字段
+                        jsonObj.remove("err");
+
+                        // 6.2.2 收集启动数据
+                        JSONObject start = jsonObj.getJSONObject("start");
+                        if (start != null) {
+                            context.output(startTag, jsonObj.toJSONString());
+                        } else {
+                            // 获取 "page" 字段
+                            JSONObject page = jsonObj.getJSONObject("page");
+                            // 获取 "common" 字段
+                            JSONObject common = jsonObj.getJSONObject("common");
+                            // 获取 "ts"
+                            Long ts = jsonObj.getLong("ts");
+
+                            // 6.2.3 收集曝光数据
+                            JSONArray displays = jsonObj.getJSONArray("displays");
+                            if (displays != null) {
+                                for (int i = 0; i < displays.size(); i++) {
+                                    JSONObject display = displays.getJSONObject(i);
+                                    JSONObject displayObj = new JSONObject();
+                                    displayObj.put("display", display);
+                                    displayObj.put("common", common);
+                                    displayObj.put("page", page);
+                                    displayObj.put("ts", ts);
+                                    context.output(displayTag, displayObj.toJSONString());
+                                }
+                            }
+
+                            // 6.2.4 收集动作数据
+                            JSONArray actions = jsonObj.getJSONArray("actions");
+                            if (actions != null) {
+                                for (int i = 0; i < actions.size(); i++) {
+                                    JSONObject action = actions.getJSONObject(i);
+                                    JSONObject actionObj = new JSONObject();
+                                    actionObj.put("action", action);
+                                    actionObj.put("common", common);
+                                    actionObj.put("page", page);
+                                    context.output(actionTag, actionObj.toJSONString());
+                                }
+                            }
+
+                            // 6.2.5 收集页面数据
+                            jsonObj.remove("displays");
+                            jsonObj.remove("actions");
+                            out.collect(jsonObj.toJSONString());
+                        }
+
+                    }
+                }
+        );
+
+        // 打印主流和各侧输出流查看分流效果
+        separatedStream.print("page>>>");
+        separatedStream.getSideOutput(startTag).print("start!!!");
+        separatedStream.getSideOutput(displayTag).print("display@@@");
+        separatedStream.getSideOutput(actionTag).print("action###");
+        separatedStream.getSideOutput(errorTag).print("error$$$");
+
+
 
         env.execute();
     }
