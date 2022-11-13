@@ -201,13 +201,32 @@ public class Dwd01_BaseLogApp {
                 }
         );
 
-        // 打印主流和各侧输出流查看分流效果
-        separatedStream.print("page>>>");
-        separatedStream.getSideOutput(startTag).print("start!!!");
-        separatedStream.getSideOutput(displayTag).print("display@@@");
-        separatedStream.getSideOutput(actionTag).print("action###");
-        separatedStream.getSideOutput(errorTag).print("error$$$");
+//        // 打印主流和各侧输出流查看分流效果
+//        separatedStream.print("page>>>");
+//        separatedStream.getSideOutput(startTag).print("start!!!");
+//        separatedStream.getSideOutput(displayTag).print("display@@@");
+//        separatedStream.getSideOutput(actionTag).print("action###");
+//        separatedStream.getSideOutput(errorTag).print("error$$$");
 
+        // TODO 7. 将数据输出到 Kafka 的不同主题
+        // 7.1 提取各侧输出流
+        DataStream<String> startDS = separatedStream.getSideOutput(startTag);
+        DataStream<String> displayDS = separatedStream.getSideOutput(displayTag);
+        DataStream<String> actionDS = separatedStream.getSideOutput(actionTag);
+        DataStream<String> errorDS = separatedStream.getSideOutput(errorTag);
+
+        // 7.2 定义不同日志输出到 Kafka 的主题名称
+        String page_topic = "dwd_traffic_page_log";
+        String start_topic = "dwd_traffic_start_log";
+        String display_topic = "dwd_traffic_display_log";
+        String action_topic = "dwd_traffic_action_log";
+        String error_topic = "dwd_traffic_error_log";
+
+        separatedStream.addSink(KafkaUtil.getKafkaProducer(page_topic));
+        startDS.addSink(KafkaUtil.getKafkaProducer(start_topic));
+        displayDS.addSink(KafkaUtil.getKafkaProducer(display_topic));
+        actionDS.addSink(KafkaUtil.getKafkaProducer(action_topic));
+        errorDS.addSink(KafkaUtil.getKafkaProducer(error_topic));
 
 
         env.execute();
