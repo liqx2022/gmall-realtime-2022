@@ -105,18 +105,18 @@
             <scope>provided</scope>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>org.apache.phoenix</groupId>-->
-<!--            <artifactId>phoenix-spark</artifactId>-->
-<!--            <version>5.0.0-HBase-2.0</version>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <groupId>org.glassfish</groupId>-->
-<!--                    <artifactId>javax.el</artifactId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
-        
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.phoenix</groupId>-->
+        <!--            <artifactId>phoenix-spark</artifactId>-->
+        <!--            <version>5.0.0-HBase-2.0</version>-->
+        <!--            <exclusions>-->
+        <!--                <exclusion>-->
+        <!--                    <groupId>org.glassfish</groupId>-->
+        <!--                    <artifactId>javax.el</artifactId>-->
+        <!--                </exclusion>-->
+        <!--            </exclusions>-->
+        <!--        </dependency>-->
+
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-jdbc_${scala.version}</artifactId>
@@ -134,7 +134,7 @@
             <groupId>org.apache.phoenix</groupId>
             <artifactId>phoenix-core</artifactId>
             <!--导入phoenix-core比导入phoenix-spark更轻量级-->
-           <!-- <artifactId>phoenix-spark</artifactId>-->
+            <!-- <artifactId>phoenix-spark</artifactId>-->
             <version>5.0.0-HBase-2.0</version>
             <exclusions>
                 <exclusion>
@@ -171,9 +171,15 @@
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-cep_${scala.version}</artifactId>
             <version>${flink.version}</version>
-    </dependency>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-table-planner-blink_${scala.version}</artifactId>
+            <version>${flink.version}</version>
+        </dependency>
 
-</dependencies>
+    </dependencies>
 
     <build>
         <plugins>
