@@ -1,4 +1,4 @@
-package com.atguigu.realtime.app.dwd;
+package com.atguigu.realtime.app.dwd.log;
 
 import com.atguigu.realtime.util.KafkaUtil;
 import com.atguigu.realtime.util.MysqlUtil;

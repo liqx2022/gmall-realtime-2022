@@ -1,4 +1,4 @@
-package com.atguigu.realtime.app.dwd;
+package com.atguigu.realtime.app.dwd.db;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONAware;
