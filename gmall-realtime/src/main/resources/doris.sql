@@ -178,3 +178,27 @@ distributed by hash(`vc`, `ch`, `ar`, `is_new`) buckets 10 properties (
 show partitions from gmall_realtime.dws_traffic_vc_ch_ar_is_new_page_view_window;
 
 select * from gmall_realtime.dws_traffic_vc_ch_ar_is_new_page_view_window;;
+
+drop table if exists gmall_realtime.dws_traffic_page_view_window;
+create table if not exists gmall_realtime.dws_traffic_page_view_window
+(
+    `stt`               DATETIME comment '窗口起始时间',
+    `edt`               DATETIME comment '窗口结束时间',
+    `cur_date`          DATE comment '当天日期',
+    `home_uv_ct`        BIGINT replace comment '首页独立访客数',
+    `good_detail_uv_ct` BIGINT replace comment '商品详情页独立访客数'
+) engine = olap aggregate key (`stt`, `edt`, `cur_date`)
+comment "流量域页面浏览各窗口汇总表"
+partition by range(`cur_date`)() 
+distributed by hash(`stt`) buckets 10 properties (
+  "replication_num" = "3",
+  "dynamic_partition.enable" = "true",
+  "dynamic_partition.time_unit" = "DAY",
+  "dynamic_partition.start" = "-1",
+  "dynamic_partition.end" = "1",
+  "dynamic_partition.prefix" = "par",
+  "dynamic_partition.buckets" = "10",
+  "dynamic_partition.hot_partition_num" = "1"
+);
+
+select * from gmall_realtime.dws_traffic_page_view_window;
