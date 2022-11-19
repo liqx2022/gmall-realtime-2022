@@ -38,3 +38,34 @@ PROPERTIES (
 );
 
 select * from test_db.table1;
+
+drop table if exists dws_traffic_source_keyword_page_view_window;
+create table if not exists dws_traffic_source_keyword_page_view_window
+(
+    `stt`           DATETIME comment '窗口起始时间',
+    `edt`           DATETIME comment '窗口结束时间',
+    `source`        VARCHAR(10) comment '关键词来源',
+    `keyword`       VARCHAR(10) comment '关键词',
+    `cur_date`      DATE comment '当天日期',
+    `keyword_count` BIGINT replace comment '关键词评分'
+) engine = olap
+    aggregate key (`stt`, `edt`, `source`, `keyword`, `cur_date`)
+comment "流量域来源-关键词粒度页面浏览汇总表"
+partition by range(`cur_date`)()
+distributed by hash(`keyword`) buckets 10 
+properties (
+  "replication_num" = "3",
+  "dynamic_partition.enable" = "true",
+  "dynamic_partition.time_unit" = "DAY",
+  "dynamic_partition.start" = "-1",
+  "dynamic_partition.end" = "1",
+  "dynamic_partition.prefix" = "par",
+  "dynamic_partition.buckets" = "10",
+  "dynamic_partition.hot_partition_num" = "1"
+);
+
+select * from gmall_realtime.dws_traffic_source_keyword_page_view_window;
+
+create database gmall_realtime;
+
+use gmall_realtime;

@@ -46,5 +46,10 @@ public class DateFormatUtil {
     public static void main(String[] args) {
         System.out.println(toYmdHms(System.currentTimeMillis()));
     }
+
+    public static String toPartitionDate(Long ts) {
+        return toDate(ts).replaceAll("-", "");
+    }
+
 }
 
