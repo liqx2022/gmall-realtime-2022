@@ -39,6 +39,8 @@ PROPERTIES (
 
 select * from test_db.table1;
 
+show partitions from test_db.table1;
+
 drop table if exists dws_traffic_source_keyword_page_view_window;
 create table if not exists dws_traffic_source_keyword_page_view_window
 (
@@ -69,3 +71,77 @@ select * from gmall_realtime.dws_traffic_source_keyword_page_view_window;
 create database gmall_realtime;
 
 use gmall_realtime;
+
+create table kw
+(
+    stt string,
+    ent string,
+    source string,
+    keyword string,
+    cut_date string,
+    keyword_count bigint
+)with(
+    'connector'='doris',
+    'fenodes'='hadoop102:7030',
+    'table.identifier'='gmall_realtime.dws_traffic_source_keyword_page_view_window',
+    'username'='root',
+    'password'='000000',
+);
+
+show partitions from gmall_realtime.dws_traffic_source_keyword_page_view_window;
+
+select * from gmall_realtime.dws_traffic_source_keyword_page_view_window;;
+
+CREATE TABLE IF NOT EXISTS test_db.example_range_tbl
+(
+    `user_id` LARGEINT NOT NULL COMMENT "用户id",
+    `date` DATE NOT NULL COMMENT "数据灌入日期时间",
+    `city` VARCHAR(20) COMMENT "用户所在城市",
+    `age` SMALLINT COMMENT "用户年龄",
+    `sex` TINYINT COMMENT "用户性别",
+    `last_visit_date` DATETIME REPLACE DEFAULT "1970-01-01 00:00:00" COMMENT "用户最后一次访问时间",
+    `cost` BIGINT SUM DEFAULT "0" COMMENT "用户总消费",
+    `max_dwell_time` INT MAX DEFAULT "0" COMMENT "用户最大停留时间",
+    `min_dwell_time` INT MIN DEFAULT "99999" COMMENT "用户最小停留时间"
+)
+    ENGINE=OLAP
+    AGGREGATE KEY(`user_id`, `date`, `city`, `age`, `sex`)
+PARTITION BY RANGE(`date`)
+(
+    PARTITION `p201701` VALUES LESS THAN ("2017-02-01"),
+    PARTITION `p201702` VALUES LESS THAN ("2017-03-01"),
+    PARTITION `p201703` VALUES LESS THAN ("2017-04-01")
+)
+DISTRIBUTED BY HASH(`user_id`) BUCKETS 16
+PROPERTIES
+(
+    "replication_num" = "3",
+    "storage_medium" = "SSD",
+    "storage_cooldown_time" = "2023-01-01 12:00:00"
+);
+
+show partitions from test_db.example_range_tbl;
+
+create table test_db.student_dynamic_partition1
+(
+    id int,
+    time date,
+    name varchar(50),
+    age int
+)
+    duplicate key(id,time)
+PARTITION BY RANGE(time)()
+DISTRIBUTED BY HASH(id) buckets 10
+PROPERTIES(
+"dynamic_partition.enable" = "true",
+"dynamic_partition.time_unit" = "DAY",
+"dynamic_partition.create_history_partition" = "true",
+"dynamic_partition.history_partition_num" = "3",
+"dynamic_partition.start" = "-7",
+"dynamic_partition.end" = "3",
+"dynamic_partition.prefix" = "p",
+"dynamic_partition.buckets" = "10",
+ "replication_num" = "1"
+ );
+
+show partitions from test_db.student_dynamic_partition1;

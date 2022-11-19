@@ -83,21 +83,40 @@ public class Dws01_DwsTrafficSourceKeywordPageViewWindow {
                 "DATE_FORMAT(TUMBLE_END(row_time, INTERVAL '10' SECOND),'yyyy-MM-dd HH:mm:ss') edt,\n'" +
                 GmallConstant.KEYWORD_SEARCH + "' source,\n" +
                 "keyword,\n" +
-                "DATE_FORMAT(TUMBLE_START(row_time, INTERVAL '10' SECOND),'yyyyMMdd') cur_date," +
+                "DATE_FORMAT(TUMBLE_START(row_time, INTERVAL '10' SECOND),'yyyy-MM-dd') cur_date," +
                 "count(*) keyword_count\n" +
                 "from split_table\n" +
                 "GROUP BY TUMBLE(row_time, INTERVAL '10' SECOND),keyword");
-
-
-
-        // TODO 7. 将动态表转换为流
-        DataStream<KeywordBean> keywordBeanDS = tableEnv.toAppendStream(KeywordBeanSearch, KeywordBean.class);
-
-        // TODO 8. 将流中的数据写到Doris中
-        String tableName = "dws_traffic_source_keyword_page_view_window";
-        keywordBeanDS.addSink(new MyDorisSink<KeywordBean>(tableName, "cur_date"));
         
+        //---------------转换成流写入doris start------------
+//        // TODO 7. 将动态表转换为流
+//        DataStream<KeywordBean> keywordBeanDS = tableEnv.toAppendStream(KeywordBeanSearch, KeywordBean.class);
+//
+//        // TODO 8. 将流中的数据写到Doris中
+//        String tableName = "dws_traffic_source_keyword_page_view_window";
+//        keywordBeanDS.addSink(new MyDorisSink<KeywordBean>(tableName, "cur_date"));
+        //---------------转换成流写入doris end------------
 
-        env.execute();
+        //---------------table直接写入doris start------------
+        tableEnv.executeSql("create table kw\n" + 
+                "(\n" +
+                "    stt string,\n" +
+                "    edt string,\n" +
+                "    source string,\n" +
+                "    keyword string,\n" +
+                "    cur_date string,\n" +
+                "    keyword_count bigint\n" +
+                ")with(\n" +
+                "    'connector'='doris',\n" +
+                "    'fenodes'='hadoop102:7030',\n" +
+                "    'table.identifier'='gmall_realtime.dws_traffic_source_keyword_page_view_window',\n" +
+                "    'username'='root',\n" +
+                "    'password'='000000'\n" +
+                ")");
+
+        KeywordBeanSearch.executeInsert("kw");
+        //---------------table直接写入doris end------------
+        
+//        env.execute();
     }
 }
