@@ -145,3 +145,36 @@ PROPERTIES(
  );
 
 show partitions from test_db.student_dynamic_partition1;
+
+drop table if exists gmall_realtime.dws_traffic_vc_ch_ar_is_new_page_view_window;
+create table if not exists gmall_realtime.dws_traffic_vc_ch_ar_is_new_page_view_window
+(
+    `stt`      DATETIME comment '窗口起始时间',
+    `edt`      DATETIME comment '窗口结束时间',
+    `vc`       VARCHAR(10) comment '版本',
+    `ch`       VARCHAR(10) comment '渠道',
+    `ar`       VARCHAR(10) comment '地区',
+    `is_new`   VARCHAR(10) comment '新老访客状态标记',
+    `cur_date` DATE comment '当天日期',
+    `uv_ct`    BIGINT replace comment '独立访客数',
+    `sv_ct`    BIGINT replace comment '会话数',
+    `pv_ct`    BIGINT replace comment '页面浏览数',
+    `dur_sum`  BIGINT replace comment '页面访问时长',
+    `uj_ct`    BIGINT replace comment '跳出会话数'
+) engine = olap aggregate key (`stt`, `edt`, `vc`, `ch`, `ar`, `is_new`, `cur_date`)
+comment "流量域版本-渠道-地区-访客类别粒度页面浏览各窗口汇总表"
+partition by range(`cur_date`)()
+distributed by hash(`vc`, `ch`, `ar`, `is_new`) buckets 10 properties (
+  "replication_num" = "3",
+  "dynamic_partition.enable" = "true",
+  "dynamic_partition.time_unit" = "DAY",
+  "dynamic_partition.start" = "-1",
+  "dynamic_partition.end" = "1",
+  "dynamic_partition.prefix" = "par",
+  "dynamic_partition.buckets" = "10",
+  "dynamic_partition.hot_partition_num" = "1"
+);
+
+show partitions from gmall_realtime.dws_traffic_vc_ch_ar_is_new_page_view_window;
+
+select * from gmall_realtime.dws_traffic_vc_ch_ar_is_new_page_view_window;;

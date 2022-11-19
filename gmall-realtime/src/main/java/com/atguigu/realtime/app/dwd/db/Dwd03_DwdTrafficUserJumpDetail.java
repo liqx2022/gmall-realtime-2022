@@ -39,7 +39,7 @@ public class Dwd03_DwdTrafficUserJumpDetail {
 
         // TODO 1. 环境准备
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(4);
+        env.setParallelism(2);
 
         // TODO 2. 状态后端设置
         env.enableCheckpointing(3000L, CheckpointingMode.EXACTLY_ONCE);

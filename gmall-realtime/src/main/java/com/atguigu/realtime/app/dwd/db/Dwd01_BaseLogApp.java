@@ -33,7 +33,7 @@ public class Dwd01_BaseLogApp {
     public static void main(String[] args) throws Exception {
         // TODO 1. 初始化环境
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(4);
+        env.setParallelism(2);
 
         // TODO 2. 启用状态后端
         env.enableCheckpointing(3000L, CheckpointingMode.EXACTLY_ONCE);
