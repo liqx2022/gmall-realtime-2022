@@ -278,3 +278,28 @@ distributed by hash(`stt`) buckets 10 properties (
 show partitions from gmall_realtime.dws_user_user_register_window; 
 
 select * from gmall_realtime.dws_user_user_register_window;
+
+
+drop table if exists gmall_realtime.dws_trade_payment_suc_window;
+create table if not exists gmall_realtime.dws_trade_payment_suc_window
+(
+    `stt`                           DATETIME comment '窗口起始时间',
+    `edt`                           DATETIME comment '窗口结束时间',
+    `cur_date`                      DATE comment '当天日期',
+    `payment_suc_unique_user_count` BIGINT replace comment '支付成功独立用户数',
+    `payment_new_user_count`        BIGINT replace comment '支付成功新用户数'
+) engine = olap aggregate key (`stt`, `edt`, `cur_date`)
+comment "交易域加购各窗口汇总表"
+partition by range(`cur_date`)()
+distributed by hash(`stt`) buckets 10 properties (
+  "replication_num" = "3",
+  "dynamic_partition.enable" = "true",
+  "dynamic_partition.time_unit" = "DAY",
+  "dynamic_partition.start" = "-1",
+  "dynamic_partition.end" = "1",
+  "dynamic_partition.prefix" = "par",
+  "dynamic_partition.buckets" = "10",
+  "dynamic_partition.hot_partition_num" = "1"
+);
+
+select * from gmall_realtime.dws_trade_payment_suc_window;
