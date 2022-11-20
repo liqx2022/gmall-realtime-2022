@@ -253,3 +253,28 @@ distributed by hash(`stt`) buckets 10 properties (
 );
 
 select * from gmall_realtime.dws_user_user_register_window;
+
+drop table gmall_realtime.dws_trade_cart_add_uu_window;
+create table if not exists gmall_realtime.dws_trade_cart_add_uu_window
+(
+    `stt`            DATETIME comment '窗口起始时间',
+    `edt`            DATETIME comment '窗口结束时间',
+    `cur_date`       DATE comment '当天日期',
+    `cart_add_uu_ct` BIGINT replace comment '加购独立用户数'
+) engine = olap aggregate key (`stt`, `edt`, `cur_date`)
+comment "交易域加购各窗口汇总表"
+partition by range(`cur_date`)()
+distributed by hash(`stt`) buckets 10 properties (
+  "replication_num" = "30",
+  "dynamic_partition.enable" = "true",
+  "dynamic_partition.time_unit" = "DAY",
+  "dynamic_partition.start" = "-10",
+  "dynamic_partition.end" = "10",
+  "dynamic_partition.prefix" = "par",
+  "dynamic_partition.buckets" = "10",
+  "dynamic_partition.hot_partition_num" = "1"
+);
+
+show partitions from gmall_realtime.dws_user_user_register_window; 
+
+select * from gmall_realtime.dws_user_user_register_window;
