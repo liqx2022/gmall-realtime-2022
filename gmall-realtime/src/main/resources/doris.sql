@@ -226,3 +226,30 @@ distributed by hash(`stt`) buckets 10 properties (
 );
 
 select * from gmall_realtime.dws_user_user_login_window;
+
+use gmall_realtime;
+
+show tables;
+
+drop table if exists gmall_realtime.dws_user_user_register_window;
+create table if not exists gmall_realtime.dws_user_user_register_window
+(
+    `stt`         DATETIME comment '窗口起始时间',
+    `edt`         DATETIME comment '窗口结束时间',
+    `cur_date`    DATE comment '当天日期',
+    `register_ct` BIGINT replace comment '注册用户数'
+) engine = olap aggregate key (`stt`, `edt`, `cur_date`)
+comment "用户域用户注册各窗口汇总表"
+partition by range(`cur_date`)()
+distributed by hash(`stt`) buckets 10 properties (
+  "replication_num" = "3",
+  "dynamic_partition.enable" = "true",
+  "dynamic_partition.time_unit" = "DAY",
+  "dynamic_partition.start" = "-1",
+  "dynamic_partition.end" = "1",
+  "dynamic_partition.prefix" = "par",
+  "dynamic_partition.buckets" = "10",
+  "dynamic_partition.hot_partition_num" = "1"
+);
+
+select * from gmall_realtime.dws_user_user_register_window;
