@@ -23,7 +23,7 @@ public class Dws01_DwsTrafficSourceKeywordPageViewWindow {
     public static void main(String[] args) throws Exception {
         // TODO 1. 基本环境准备
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(4);
+        env.setParallelism(2);
         StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
 
         // TODO 2. 检查点设置

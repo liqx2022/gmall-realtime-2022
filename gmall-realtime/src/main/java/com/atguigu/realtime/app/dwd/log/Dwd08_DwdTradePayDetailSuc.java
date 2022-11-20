@@ -23,7 +23,7 @@ public class Dwd08_DwdTradePayDetailSuc {
 
         // TODO 1. 基本环境准备
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(4);
+        env.setParallelism(2);
         StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
 
         tableEnv.getConfig().setLocalTimeZone(ZoneId.of("GMT+8"));

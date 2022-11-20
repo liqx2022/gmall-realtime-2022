@@ -23,7 +23,7 @@ public class Dwd05_DwdTradeOrderPreProcess {
 
         // TODO 1. 环境准备
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(4);
+        env.setParallelism(2);
         StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
 
 // 获取配置对象

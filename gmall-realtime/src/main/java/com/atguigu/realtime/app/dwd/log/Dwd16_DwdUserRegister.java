@@ -21,7 +21,7 @@ public class Dwd16_DwdUserRegister {
 
         // TODO 1. 环境准备
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(4);
+        env.setParallelism(2);
         StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
         tableEnv.getConfig().setLocalTimeZone(ZoneId.of("GMT+8"));
 

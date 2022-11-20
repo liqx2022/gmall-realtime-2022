@@ -24,7 +24,7 @@ public class Dwd04_DwdTradeCartAdd {
 
         // TODO 1. 环境准备
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(4);
+        env.setParallelism(2);
         StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
 
         // 设定 Table 中的时区为本地时区
